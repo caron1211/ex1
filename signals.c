@@ -12,7 +12,7 @@
 
 void sigCathcher(int sig);
 
- int arrChilds[5];         // holds the pids of the children
+ int arrChilds[5];         // pids of the children
  int j;                   // index to arrChilds
   
 int main()
@@ -21,23 +21,23 @@ int main()
   int zombie;
   int status;
   int pid;
- signal(SIGINT,sigCathcher);    // sets a handler for INT signal
+ signal(SIGINT,sigCathcher);  
  
  for(i=0; i<5; i++)
  {
-    if((pid=fork()) ==  0)  	// create new child
+    if((pid=fork()) ==  0)  	// new child
     {                        
       	printf("PID %d ready\n", getpid());
       	j = i-1;
       	pause(); 			// wait for signal
      	exit(0);  			// end process (become a zombie)
     }
-    else            			// Only father updates the arrChilds array.
+    else            			//father updates the arrChilds array.
       arrChilds[i] = pid;	  
 }
 
 
-sleep(2);     	                		// allow children time to enter pause
+sleep(2);     	                	
 kill(arrChilds[4], SIGINT);     		// send signal to first child
 sleep(2);                              // wait for children to become zombies 
 
