@@ -2,28 +2,37 @@
 // C program to illustrate
 // pipe system call in C
 // shared by Parent and Child
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include "md5.h"
 #include <string.h>
+
+#include <stdio.h>
+
+#include <stdlib.h>
+
 #include <fcntl.h>
+
 #include <sys/uio.h>
+
+#include <sys/types.h>
+
+#include <unistd.h>
+
 #include <signal.h>
+#include<sys/wait.h> 
+
 #include <sys/fcntl.h>
-using namespace std;
+#include "md5.h"
+
 #define MAXMSGINPUTSIZE 20
 #define MAXMSGSIZEMD5 32
+
+using namespace std;
 
 int pid;
 
 string msgMD5;
 
-char *strInput;
-  char buffer_input[MAXMSGINPUTSIZE];
-  char buffer_md5[MAXMSGSIZEMD5];
+char buffer_input[MAXMSGINPUTSIZE];
+char buffer_md5[MAXMSGSIZEMD5];
 
 void signalFun(int signo);
 
@@ -31,10 +40,17 @@ void signalFun(int signo);
 
 int main()
 {
-  
 
   int p1[2], p2[2]; //p2-child to father ,  p1-father to child
   int nbytes;
+
+  printf("plain text:\n");
+  char strInput[20];
+  scanf("%s", strInput); //father get string from the user
+  if (strlen(strInput) > MAXMSGINPUTSIZE)
+  {
+    exit(1);
+  }
 
   if (pipe(p1) < 0)
     exit(1);
@@ -45,40 +61,40 @@ int main()
   if ((pid = fork()) > 0) //father
   {
     signal(SIGINT, signalFun);
-
-    printf("plain text:");
-    scanf("%s", strInput); //father get string from the user
-    if (strlen(strInput) > MAXMSGINPUTSIZE)
-    {
-      exit(1);
-    }
+    printf("in the father+ pid=%d \n", getpid());
 
     write(p1[1], strInput, MAXMSGINPUTSIZE);
     close(p1[1]);
     sleep(2);
 
-  read(p2[0], buffer_md5, MAXMSGSIZEMD5 );
+    read(p2[0], buffer_md5, MAXMSGSIZEMD5);
+    printf("the father read the= %s\n", buffer_md5);
 
-  close(p2[0]);
-
+    close(p2[0]);
+    wait(NULL);
+    return 0;
   }
 
-  else if (pid == 0) { // son
+  else if (pid == 0)
+  { // son
 
+    sleep(1);
+    printf("in the son + pid=%d \n", getpid());
 
     if ((nbytes = read(p1[0], buffer_input, MAXMSGINPUTSIZE)) > 0) //child read
     {
+      printf("the son read the= %s\n", buffer_input);
 
-      msgMD5 = md5 (strInput);
+      msgMD5 = md5(strInput);
       close(p1[0]);
-      write(p2[1], msgMD5.c_str(), MAXMSGSIZEMD5); 
+      write(p2[1], msgMD5.c_str(), MAXMSGSIZEMD5);
       close(p2[1]);
       sleep(2);
       kill(getppid(), SIGINT); // send signal to father
+      while(1);
     }
   }
 
-  
   else
   { // fork fail
     close(p1[1]);
@@ -88,8 +104,8 @@ int main()
 
 void signalFun(int signo)
 {
-
-  if (strlen(msgMD5.c_str()) == MAXMSGSIZEMD5)
+  printf("in signal handler");
+  if (strlen(buffer_md5) == MAXMSGSIZEMD5)
   {
     printf("encrypted by process %d : %s", pid, msgMD5.c_str());
 
