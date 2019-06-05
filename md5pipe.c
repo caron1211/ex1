@@ -61,14 +61,14 @@ int main()
   if ((pid = fork()) > 0) //father
   {
     signal(SIGINT, signalFun);
-    printf("in the father+ pid=%d \n", getpid());
+
 
     write(p1[1], strInput, MAXMSGINPUTSIZE);
     close(p1[1]);
     sleep(2);
 
     read(p2[0], buffer_md5, MAXMSGSIZEMD5);
-    printf("the father read the= %s\n", buffer_md5);
+
 
     close(p2[0]);
     wait(NULL);
@@ -79,11 +79,11 @@ int main()
   { // son
 
     sleep(1);
-    printf("in the son + pid=%d \n", getpid());
+
 
     if ((nbytes = read(p1[0], buffer_input, MAXMSGINPUTSIZE)) > 0) //child read
     {
-      printf("the son read the= %s\n", buffer_input);
+
 
       msgMD5 = md5(strInput);
       close(p1[0]);
@@ -104,10 +104,10 @@ int main()
 
 void signalFun(int signo)
 {
-  printf("in signal handler");
+
   if (strlen(buffer_md5) == MAXMSGSIZEMD5)
   {
-    printf("encrypted by process %d : %s", pid, msgMD5.c_str());
+    printf("encrypted by process %d : %s\n", pid, buffer_md5);
 
     kill(pid, SIGKILL);
   }
